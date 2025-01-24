@@ -1,0 +1,421 @@
+#include <Key.h>
+#include <Keypad.h>		// Controla el teclado
+#include <LiquidCrystal.h>	//controla el LCD
+#include <Servo.h>			//Control del servomotor
+#include <EEPROM.h>		//COntrola E/S EEPROM
+#define CERRAR 0			//Calibrar a gusto la pos del servomotor cerrado
+#define ABRIR 90			//Calibrar a gusto la pos del servomotor abierto
+//*****************************************
+//*** Declaracion de variables locales*****
+//*****************************************
+Servo seguro;	//Servomotor
+LiquidCrystal lcd(A0, A1, A2, A3, A4, A5);//Display LCD
+
+int buzzer = 10;
+int ilosc;		//Numero de Clicks
+
+const byte filas = 4;
+const byte columnas = 4;
+byte pinsFilas[filas] = { 9, 8, 7, 6 };
+byte pinsColumnas[columnas] = { 5, 4, 3, 2 };
+char teclas[filas][columnas] =  {//Declaración del teclado
+  {'1', '2', '3', 'A'},
+  {'4', '5', '6', 'B'},
+  {'7', '8', '9', 'C'},
+  {'*', '0', '#', 'D'},
+};
+Keypad teclado = Keypad(makeKeymap(teclas), pinsFilas, pinsColumnas, filas, columnas);
+
+char password[5];	//Almacena la contraseña en eeprom
+char ingreso;		//Ingreso del usuario
+char passUser[4];
+char confirmPass[4];//Confirmacion de la contraseña
+
+const int messageDelay = 4000;
+
+int countGeral = 0;
+int countClaveIncorrecta = 0;
+
+bool isOpen;
+
+
+void setup()
+{
+	pinMode(11, OUTPUT);	//LEDS QUE INDICAN ABIERTO(11) CERRADO(12)
+	pinMode(12, OUTPUT);
+	pinMode(buzzer, OUTPUT);
+
+	digitalWrite(12, HIGH);	//Enciende el led de cerrado
+	seguro.attach(13);		//Pin del servomotor
+	seguro.write(CERRAR);
+	lcd.begin(16, 2);		//Configuracion lcd 16X2 (columnas,fila)
+	
+
+	informacion();
+	isOpen = false;
+
+	//LEER CONTRASEÑA DE LA EEPROM 
+
+	//correción
+	if (EEPROM.read(4) != 'Z')
+	{
+		EEPROM.write(0, '0');
+		EEPROM.write(1, '0');
+		EEPROM.write(2, '0');
+		EEPROM.write(3, '0');
+		EEPROM.write(4, 'Z');
+	}
+	for (int i = 0 ; i <= 4 ; i++)
+	{
+		password[i] = EEPROM.read(i);
+
+	}
+
+	countClaveIncorrecta = 0;
+	reset();
+
+}//fin del setup
+
+void loop()
+{
+	leerIngreso(1);
+
+}
+
+////////////////////////////////////////////
+void leerIngreso(int a)
+{
+	ingreso = teclado.getKey();
+	if (ingreso != NO_KEY)
+		switch (ingreso)
+		{
+			case '#':    // es como el "enter" para introducir la password
+				if(isOpen)
+				{
+					lcd.setCursor(0, 0);
+					lcd.print(" Puerta abierta ");
+					lcd.setCursor(0, 1);
+					lcd.print("                ");
+					delay(2000);
+					break;
+				}
+				digitalWrite(10, HIGH);
+				delay(15);
+				digitalWrite(10, LOW);
+				delay(15);
+
+				if (evaluar(1) == 1)
+				{
+					correcto();
+					lcd.setCursor(0, 0);
+					lcd.print(" Puerta abierta ");
+					lcd.setCursor(0, 1);
+					lcd.print("                ");
+				}
+				else
+				{
+					msgError();
+					countClaveIncorrecta++;
+
+					if (countClaveIncorrecta >= 3)
+					{
+						lcd.setCursor(0, 0);
+						lcd.print("SISTEMA BLOQUEADO ");
+						digitalWrite(buzzer, HIGH);
+						delay(messageDelay);
+						delay(messageDelay);
+						delay(messageDelay);
+						delay(messageDelay);
+                      	delay(messageDelay);
+						digitalWrite(buzzer, LOW);
+						lcd.print("SISTEMA LISTO   ");
+						delay(messageDelay);
+						delay(5);
+						countClaveIncorrecta = 0;
+						reset();
+					}
+					reset();
+				}
+				//reset();
+				break;
+
+			case 'B':
+				if(isOpen)
+				{
+					lcd.setCursor(0, 0);
+					lcd.print(" Puerta abierta ");
+					lcd.setCursor(0, 1);
+					lcd.print("                ");
+					delay(2000);
+					break;
+				}
+				digitalWrite(10, HIGH);
+				delay(15);
+				digitalWrite(10, LOW);
+				delay(15);
+				informacion();  //muestra en el lcd las opciones de la caja fuerte
+				reset();
+				break;
+			case 'C':
+				if(isOpen){
+					lcd.setCursor(0, 0);
+					lcd.print(" Puerta abierta ");
+					lcd.setCursor(0, 1);
+					lcd.print("                ");
+					delay(2000);
+					break;
+				}
+				digitalWrite(10, HIGH);
+				delay(15);
+				digitalWrite(10, LOW);
+				delay(15);
+				cambioPass();
+				reset();
+				break;
+			case 'D':
+				if(!isOpen){
+					lcd.setCursor(0, 0);
+					lcd.print(" Puerta cerrada ");
+					lcd.setCursor(0, 1);
+					lcd.print("                ");
+					delay(2000);
+					reset();
+					break;
+				}
+				isOpen = false;
+				lcd.setCursor(0, 0);
+				lcd.print("Cerrar Puerta   ");
+				seguro.write(CERRAR);
+				digitalWrite(buzzer, HIGH);
+				delay(messageDelay);
+				digitalWrite(buzzer, LOW);
+				delay(15);
+				digitalWrite(12, HIGH);
+				digitalWrite(11, LOW);
+				reset();
+				break;
+			case '*':
+				if(isOpen){
+					lcd.setCursor(0, 0);
+					lcd.print(" Puerta abierta ");
+					lcd.setCursor(0, 1);
+					lcd.print("                ");
+					delay(2000);
+					break;
+				}
+				lcd.setCursor(0, 0);
+				lcd.print("Presionaste *    ");
+				digitalWrite(buzzer, HIGH);
+				delay(500);
+				digitalWrite(buzzer, LOW);
+				delay(5);
+				reset();
+				break;
+			case 'A':
+				if(isOpen){
+					lcd.setCursor(0, 0);
+					lcd.print(" Puerta abierta ");
+					lcd.setCursor(0, 1);
+					lcd.print("                ");
+					delay(2000);
+					break;
+				}
+				reset();
+				break;
+			default: //si es un numero debe imprimirlo en el LCD y ademas guardarlo en el arreglo passUser
+				if(isOpen){
+					lcd.setCursor(0, 0);
+					lcd.print(" Puerta abierta ");
+					lcd.setCursor(0, 1);
+					lcd.print("                ");
+					delay(2000);
+					for (int i = 0 ; i <= 3 ; i++){
+						passUser[i] = NO_KEY;
+						confirmPass[i] = NO_KEY;
+					}
+					countGeral = 0;
+					break;
+				}
+				if (a == 1){
+					passUser[countGeral] = ingreso;
+					printPass(passUser[countGeral], 6 + countGeral, 1);
+					digitalWrite(10, HIGH);
+					delay(15);
+					digitalWrite(10, LOW);
+					delay(15);
+				}
+				if (a == 2){
+					confirmPass[countGeral] = ingreso;
+					printPass(confirmPass[countGeral], 6 + countGeral, 1);
+				}
+				countGeral++;
+				if (countGeral > 3)
+					countGeral = 0;
+		}
+}
+
+void cleanlcd(){
+	lcd.setCursor(0, 0);
+	lcd.print("                ");
+	lcd.setCursor(0, 1);
+	lcd.print("                ");
+}
+
+void printPass(char a, int columna, int fila){
+	lcd.setCursor(columna, fila);
+	lcd.print(a);
+	delay(100);
+	lcd.setCursor(columna, fila);
+	lcd.print("*");
+}
+
+int evaluar(int a){
+	int j = 0;
+	if (a == 1){
+		for (int i = 0 ; i <= 3 ; i++){
+			if (password[i] == passUser[i]){
+				j++;
+			}
+		}
+	}
+	if (a == 2){
+		for (int i = 0 ; i <= 3 ; i++){
+			if (passUser[i] == confirmPass[i]){
+				j++;
+			}
+		}
+	}
+	if (j == 4){
+		return j = 1;
+	}
+	else{
+		return j = 0;
+	}
+}
+void reset(){
+	lcd.setCursor(0, 0);
+	lcd.print(" INGRESE CLAVE  ");
+	lcd.setCursor(0, 1);
+	lcd.print("      ____      ");
+	for (int i = 0 ; i <= 3 ; i++){
+		passUser[i] = NO_KEY;
+		confirmPass[i] = NO_KEY;
+	}
+	countGeral = 0;
+}
+void msgError(){
+	lcd.setCursor(0, 0);
+	lcd.print("      ERROR      ");
+	delay(500);
+}
+void correcto(){
+	lcd.setCursor(0, 0);
+	lcd.print("     CORRECTO      ");
+	//Abrir servomotor
+	seguro.write(ABRIR);
+	isOpen = true;
+	digitalWrite(10, HIGH);
+	delay(15);
+	digitalWrite(10, LOW);
+	delay(15);
+	digitalWrite(11, HIGH);
+	digitalWrite(12, LOW);
+	delay(500);
+	countClaveIncorrecta = 0;
+}
+void informacion()
+{
+	lcd.setCursor(0, 0);
+	lcd.print("A ingresar clave");
+	lcd.setCursor(0, 1);
+	lcd.print("# enter clave   ");
+	delay(messageDelay);
+	lcd.setCursor(0, 0);
+	lcd.print("B mostrar opc.  ");
+	lcd.setCursor(0, 1);
+	lcd.print("C cambiar clave ");
+	delay(messageDelay);
+	lcd.setCursor(0, 0);
+	lcd.print("D cerrar puerta ");
+	lcd.setCursor(0, 1);
+	lcd.print("                ");
+	delay(messageDelay);
+}
+
+void cambioPass()
+{
+	lcd.setCursor(0, 0);
+	lcd.print("Cambiar clave    ");
+	delay(messageDelay);
+	lcd.setCursor(0, 0);
+	lcd.print("Clave anterior    ");
+	delay(messageDelay);
+	reset();
+	while (passUser[3] == NO_KEY)
+	{
+		leerIngreso(1);
+	}
+	if (evaluar(1) == 1)
+	{
+		lcd.setCursor(0, 0);
+		lcd.print("Clave nueva           ");
+		delay(messageDelay);
+		reset();
+		while (passUser[3] == NO_KEY)
+		{
+			leerIngreso(1);
+		}
+		lcd.setCursor(0, 0);
+		lcd.print("Confirma clave     ");
+		delay(messageDelay);
+		lcd.setCursor(0, 0);
+		lcd.print("   **CLAVE**      ");
+		lcd.setCursor(6, 1);
+		lcd.print("      ____      ");
+		lcd.setCursor(0, 0);
+		countGeral = 0;
+		while (confirmPass[3] == NO_KEY)
+		{
+			leerIngreso(2);
+		}
+		if (evaluar(2) == 1)
+		{
+			// funcion de EEPROM
+			for (int i = 0 ; i <= 3 ; i++)
+			{
+				EEPROM.write(i, passUser[i]);
+			}
+			for (int i = 0 ; i <= 3 ; i++)
+			{
+				password[i] = EEPROM.read(i);
+			}
+			lcd.setCursor(0, 0);
+			lcd.print("Clave actualizada  ");
+			delay(messageDelay);
+			countClaveIncorrecta = 0;
+		}
+		else
+		{
+			lcd.setCursor(0, 0);
+			lcd.print("Error claves   ");
+			//delay(messageDelay);
+			lcd.setCursor(0, 1);
+			lcd.print("no coinciden        ");
+			delay(messageDelay);
+		}
+	}
+	else
+	{
+		msgError();
+	}
+	reset();
+}
+void passChange()
+{
+	for (int i = 0 ; i <= 3 ; i++)
+	{
+		password[i] = passUser[i];
+	}
+}
+
+
