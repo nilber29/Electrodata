@@ -1,0 +1,177 @@
+#define D0 8 //Definicion del pin de la arduino a conectar en el pin d0 del deco
+#define D1 9 //Definicion del pin de la arduino a conectar en el pin d1 del deco
+#define D2 10 //Definicion del pin de la arduino a conectar en el pin d2 del deco
+#define D3 11 //Definicion del pin de la arduino a conectar en el pin d3 del deco
+#define enable_display 2 //pin digital para prender o pagar el display
+#define en34 13//Pin que se conecta al enable34 del 293
+#define in3 12//Pin que se conecta al in3 del 293
+#define in4 7//Pin que se conecta al in4 del 293
+int peso = A0;  //El potenciometro emula el peso en el ascensor
+float val = 0;  //Señal recibida por el potenciometro que puede tener decimales
+float x = 0;    //La variable que realiza la conversion de voltaje a un peso determinado
+const int buzz=3;  //Variable del buzzer
+const int incremento = 5;  //Variable para controlar el ascenso
+const int decremento = 4;  //Variable para controlar el descenso
+const int puerta = 6;      //Variable que emula el estado de la puerta
+int inc = 0; 
+int dec = 0;
+int i = 0;
+int p = 0;
+void setup(){
+  pinMode(peso,INPUT);
+  pinMode(buzz,OUTPUT);
+  pinMode(D0,OUTPUT);
+  pinMode(D1,OUTPUT);
+  pinMode(D2,OUTPUT);
+  pinMode(D3,OUTPUT);
+  pinMode(enable_display,OUTPUT);
+  pinMode(incremento,INPUT);
+  pinMode(decremento,INPUT);
+  pinMode(puerta,INPUT);
+  pinMode(en34,OUTPUT);
+  pinMode(in3,OUTPUT);
+  pinMode(in4,OUTPUT);
+  Serial.begin(9600);
+}
+void loop(){
+  val=analogRead(peso);
+  x=val*5.0/1024.0;     // Conversion de voltaje a voleres registrados como peso
+  p = digitalRead(puerta);
+  if (x>2 && p==1) {
+  // Condicion para que cuando el peso sea mayor 240 Kg y la puerta se encuentre abierta
+  // el ascensor no funcione y se emita una alarma que indica que se debe reducir el peso y cerrar la puerta
+  // en caso de que se tenga la puerta cerrada pero el peso sea mayor al permitido el ascensor no funciona
+  // tambien cuando el peso se encuentra en el rango permitido pero la puerta está abierta tampoco funcionará
+    tone(buzz,550);
+    delay(100);
+  }
+  if (x<=2){
+    noTone(buzz);	
+    delay(100);
+    if (p==0){  //La puerta debe estar cerrada para poder ascender o descender
+      inc = digitalRead(incremento);
+      dec = digitalRead(decremento);
+      if (inc==1){ 
+        if (i<4){ //Cuando se oprima el boton para subir se debe encontrar en un rango entre 0 y 3 para que el ascensor ascienda.
+          i=i+1;
+          print_seven_segment(i);
+          delay(2000); // Wait for 1000 millisecond(s)
+          //Girar en el sentido horario
+  	      digitalWrite(en34, HIGH);//habilitar el movimiento del motor
+  	      digitalWrite(in3,LOW);
+  	      digitalWrite(in4,HIGH);
+  	      delay(1000); // Wait for 1000 millisecond(s)
+  	      //Metodo 2 para frenar si el enable esta activo:
+  	      digitalWrite(in3,LOW);
+  	      digitalWrite(in4,LOW);
+  	      delay(1000); // Wait for 1000 millisecond(s)¡ 
+        }
+        if(i>=4){ // Cuando el usuario se encuentre en el ultimo piso y orpima el boton subir le aparecerá un letrero que le indica que ya no podrá subir mas.
+          // y por lo tanto el motor no funcionará
+          Serial.println("Se encuentra en el piso máximo"); 
+        }
+      }
+      if (dec==1){ 
+      //MODIFICAION CAMBIAR DOND VA i=i-1
+        if(i>0){ //Cuando se oprime el boton de bajar y el valor de i sea mayor a cero podrá descender.
+          i=i-1;
+          print_seven_segment(i);
+          delay(2000); // Wait for 1000 millisecond(s)
+          //Girar en el sentido antihorario
+          digitalWrite(en34, HIGH);//habilitar el movimiento del motor
+          digitalWrite(in3,HIGH);
+  	      digitalWrite(in4,LOW);
+  	      delay(1000); // Wait for 1000 millisecond(s)
+          //Metrodo 1 para frenar: enviar un voltaje bajo al enable
+  	      digitalWrite(en34, LOW);
+  	      delay(1000);
+          if(i<=0){
+            Serial.println("Se encuantra en el sotano");  //si se encuentra en el sotano y oprime el boton de bajar se mostrará el letrero de que no puede bajar mas.
+            // y el motor de la maquina no funcionará. 
+          }
+        }
+      }
+    }
+  }
+}
+void print_seven_segment(int number){
+//Se empieza por activar el display
+//Por ser un display catodo comun se activa con 0V (LOW)
+  digitalWrite(enable_display, LOW);
+  switch (number) {    
+    case 0:
+    //imprimir 0
+    digitalWrite(8, LOW);//0000
+    digitalWrite(9, LOW);
+    digitalWrite(10, LOW);
+    digitalWrite(11, LOW);
+    break;
+    case 1:
+    //imprimir 1
+    digitalWrite(D0, HIGH);
+    digitalWrite(D1, LOW);
+    digitalWrite(D2, LOW);
+    digitalWrite(D3, LOW);
+    break;
+    case 2:
+    //imprimir 2
+    digitalWrite(D0, LOW);
+    digitalWrite(D1, HIGH);
+    digitalWrite(D2, LOW);
+    digitalWrite(D3, LOW);
+    break;
+    case 3:
+    //imprimir 3
+    digitalWrite(D0, HIGH);
+    digitalWrite(D1, HIGH);
+    digitalWrite(D2, LOW);
+    digitalWrite(D3, LOW);
+    break;
+    case 4:
+    //imprimir 4
+    digitalWrite(D0, LOW);
+    digitalWrite(D1, LOW);
+    digitalWrite(D2, HIGH);
+    digitalWrite(D3, LOW);
+    break;
+    case 5:
+    //imprimir 5 0101
+    digitalWrite(D0, HIGH);
+    digitalWrite(D1, LOW);
+    digitalWrite(D2, HIGH);
+    digitalWrite(D3, LOW);
+    break;
+    case 6:
+    //imprimir 6
+    digitalWrite(D0, LOW);
+    digitalWrite(D1, HIGH);
+    digitalWrite(D2, HIGH);
+    digitalWrite(D3, LOW);
+    break;
+    case 7:
+    //imprimir 7
+    digitalWrite(D0, HIGH);
+    digitalWrite(D1, HIGH);
+    digitalWrite(D2, HIGH);
+    digitalWrite(D3, LOW);
+    break;
+    case 8:
+    //imprimir 8
+    digitalWrite(D0, LOW);
+    digitalWrite(D1, LOW);
+    digitalWrite(D2, LOW);
+    digitalWrite(D3, HIGH);
+    break;
+    case 9:
+    //imprimir 9
+    digitalWrite(D0, HIGH);
+    digitalWrite(D1, LOW);
+    digitalWrite(D2, LOW);
+    digitalWrite(D3, HIGH);
+    break;
+    default:
+    // si es un numero mayor de 9 omenor de 0 se debe apagar el display
+    digitalWrite(enable_display, HIGH);
+    break;
+  }
+}
