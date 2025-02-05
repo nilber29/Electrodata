@@ -1,0 +1,48 @@
+#include <Servo.h>
+Servo servo;
+const int trigPin = 5;
+const int echoPin = 6;
+const int servoPin = 7;
+const int ledPin = 8;  // Pin para el LED
+const int distanceThreshold = 150;
+const int numMeasurements = 3;
+long measurements[numMeasurements];¡
+long measureDistance() {
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(5);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(15);
+  digitalWrite(trigPin, LOW);
+  pinMode(echoPin, INPUT);
+  return pulseIn(echoPin, HIGH) / 2 / 29.1;
+}
+void setup() {
+  servo.attach(servoPin);
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  pinMode(ledPin, OUTPUT);  // Configurar el pin del LED como salida
+  servo.write(0);
+  delay(100);
+  servo.detach();
+}
+void loop() {
+  for (int i = 0; i < numMeasurements; i++) {
+    measurements[i] = measureDistance();
+    delay(10);
+  }
+  long averageDistance = (measurements[0] + measurements[1] + measurements[2]) / numMeasurements;
+  if (averageDistance < distanceThreshold) {
+    digitalWrite(ledPin, HIGH);  // Encender el LED
+    servo.attach(servoPin);
+    servo.write(160);
+    delay(2000);
+    servo.write(0);
+    delay(2500);
+    servo.detach();
+    digitalWrite(ledPin, LOW);   // Apagar el LED
+  } 
+  else {
+    servo.detach();
+    digitalWrite(ledPin, LOW);   // Asegurarse de que el LED esté apagado si el servo no se mueve
+  }
+}
