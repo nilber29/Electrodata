@@ -1,0 +1,43 @@
+#include <Servo.h>
+Servo servo;
+const int trigPin = 5;
+const int echoPin = 6;
+const int servoPin = 7;
+const int distanceThreshold = 150;
+const int numMeasurements = 3;
+long measurements[numMeasurements];
+long measureDistance() {
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(5);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(15);
+  digitalWrite(trigPin, LOW);
+  pinMode(echoPin, INPUT);
+  return pulseIn(echoPin, HIGH) / 2 / 29.1;
+}
+void setup() {
+  servo.attach(servoPin);
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  servo.write(0);
+  delay(100);
+  servo.detach();
+}
+void loop() {
+  for (int i = 0; i < numMeasurements; i++) {
+    measurements[i] = measureDistance();
+    delay(10);
+  }
+  long averageDistance = (measurements[0] + measurements[1] + measurements[2]) / numMeasurements;
+  if (averageDistance < distanceThreshold) {
+    servo.attach(servoPin);
+    servo.write(160);
+    delay(2000);
+    servo.write(0);
+    delay(2500);
+    servo.detach();
+  } 
+  else {
+    servo.detach();
+  }
+}
