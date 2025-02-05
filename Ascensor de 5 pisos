@@ -1,4 +1,4 @@
-#define D0 8 //Definicion del pin de la arduino a conectar en el pin d0 del deco
+#define D0 8 //Definicion del pin de la arduino a conectar en el pin d0 del deco 
 #define D1 9 //Definicion del pin de la arduino a conectar en el pin d1 del deco
 #define D2 10 //Definicion del pin de la arduino a conectar en el pin d2 del deco
 #define D3 11 //Definicion del pin de la arduino a conectar en el pin d3 del deco
