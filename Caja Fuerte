@@ -5,9 +5,6 @@
 #include <EEPROM.h>		//COntrola E/S EEPROM
 #define CERRAR 0			//Calibrar a gusto la pos del servomotor cerrado
 #define ABRIR 90			//Calibrar a gusto la pos del servomotor abierto
-//*****************************************
-//*** Declaracion de variables locales*****
-//*****************************************
 Servo seguro;	//Servomotor
 LiquidCrystal lcd(A0, A1, A2, A3, A4, A5);//Display LCD
 
