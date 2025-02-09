@@ -7,10 +7,8 @@
 #define ABRIR 90			//Calibrar a gusto la pos del servomotor abierto
 Servo seguro;	//Servomotor
 LiquidCrystal lcd(A0, A1, A2, A3, A4, A5);//Display LCD
-
 int buzzer = 10;
 int ilosc;		//Numero de Clicks
-
 const byte filas = 4;
 const byte columnas = 4;
 byte pinsFilas[filas] = { 9, 8, 7, 6 };
@@ -22,80 +20,58 @@ char teclas[filas][columnas] =  {//Declaración del teclado
   {'*', '0', '#', 'D'},
 };
 Keypad teclado = Keypad(makeKeymap(teclas), pinsFilas, pinsColumnas, filas, columnas);
-
 char password[5];	//Almacena la contraseña en eeprom
 char ingreso;		//Ingreso del usuario
 char passUser[4];
 char confirmPass[4];//Confirmacion de la contraseña
-
 const int messageDelay = 4000;
-
 int countGeral = 0;
 int countClaveIncorrecta = 0;
-
 bool isOpen;
 
-
-void setup()
-{
-	pinMode(11, OUTPUT);	//LEDS QUE INDICAN ABIERTO(11) CERRADO(12)
-	pinMode(12, OUTPUT);
-	pinMode(buzzer, OUTPUT);
-
-	digitalWrite(12, HIGH);	//Enciende el led de cerrado
-	seguro.attach(13);		//Pin del servomotor
-	seguro.write(CERRAR);
-	lcd.begin(16, 2);		//Configuracion lcd 16X2 (columnas,fila)
-	
-
-	informacion();
-	isOpen = false;
-
-	//LEER CONTRASEÑA DE LA EEPROM 
-
-	//correción
-	if (EEPROM.read(4) != 'Z')
-	{
-		EEPROM.write(0, '0');
-		EEPROM.write(1, '0');
-		EEPROM.write(2, '0');
-		EEPROM.write(3, '0');
-		EEPROM.write(4, 'Z');
-	}
-	for (int i = 0 ; i <= 4 ; i++)
-	{
-		password[i] = EEPROM.read(i);
-
-	}
-
-	countClaveIncorrecta = 0;
-	reset();
-
+void setup(){
+  pinMode(11, OUTPUT);	//LEDS QUE INDICAN ABIERTO(11) CERRADO(12)
+  pinMode(12, OUTPUT);
+  pinMode(buzzer, OUTPUT);
+  digitalWrite(12, HIGH);	//Enciende el led de cerrado
+  seguro.attach(13);		//Pin del servomotor
+  seguro.write(CERRAR);
+  lcd.begin(16, 2);		//Configuracion lcd 16X2 (columnas,fila)
+  informacion();
+  isOpen = false;
+  //LEER CONTRASEÑA DE LA EEPROM 
+  //correción
+  if (EEPROM.read(4) != 'Z'){
+    EEPROM.write(0, '0');
+    EEPROM.write(1, '0');
+    EEPROM.write(2, '0');
+    EEPROM.write(3, '0');
+    EEPROM.write(4, 'Z');
+  }
+  for (int i = 0 ; i <= 4 ; i++){
+    password[i] = EEPROM.read(i);
+  }
+  countClaveIncorrecta = 0;
+  reset();
 }//fin del setup
 
-void loop()
-{
-	leerIngreso(1);
-
+void loop(){
+  leerIngreso(1);
 }
-
 ////////////////////////////////////////////
-void leerIngreso(int a)
-{
-	ingreso = teclado.getKey();
-	if (ingreso != NO_KEY)
-		switch (ingreso)
-		{
-			case '#':    // es como el "enter" para introducir la password
-				if(isOpen)
-				{
-					lcd.setCursor(0, 0);
-					lcd.print(" Puerta abierta ");
-					lcd.setCursor(0, 1);
-					lcd.print("                ");
-					delay(2000);
-					break;
-				}
+void leerIngreso(int a){
+  ingreso = teclado.getKey();
+  if (ingreso != NO_KEY)
+  switch (ingreso){
+    case '#':    // es como el "enter" para introducir la password
+    if(isOpen){
+      lcd.setCursor(0, 0);
+      lcd.print(" Puerta abierta ");
+      lcd.setCursor(0, 1);
+      lcd.print("                ");
+      delay(2000);
+      break;
+    }
 				digitalWrite(10, HIGH);
 				delay(15);
 				digitalWrite(10, LOW);
