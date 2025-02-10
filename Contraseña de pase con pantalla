@@ -1,0 +1,89 @@
+#include <LiquidCrystal.h>
+#include <Keypad.h>
+#define FILAS 4
+#define COLUMNAS 4
+LiquidCrystal lcd(13, 12, 11, 10, 9, 8);
+char tecla[FILAS][COLUMNAS] = {
+{'1','2','3','+'},
+{'4','5','6','-'},
+{'7','8','9','*'},
+{'C','0','=','/'} };
+String pass="1234";
+String prueba;
+int i=0;
+char teclas;
+int cont=0;
+int intento=0;
+byte pinfilas[FILAS] = {A0, A1, A2, A3};
+byte pincolumnas[COLUMNAS] = {3, 2, 1, 0};
+Keypad teclado = Keypad( makeKeymap(tecla), pinfilas, pincolumnas, FILAS, COLUMNAS);
+
+void setup(){
+  pinMode(4,OUTPUT);
+  lcd.begin(16, 2);
+  lcd.setCursor(0,0);
+  lcd.clear();
+}
+
+void loop(){
+  lcd.setCursor(0,0);
+  lcd.print("INGRESE PASSWORD");
+  teclas = teclado.getKey();
+  if(teclas){
+    lcd.setCursor(i,1);
+    lcd.print(teclas);
+    i++;
+    prueba+=(char)teclas;
+    cont++;
+    if (cont==4){
+      if (prueba==pass){
+        digitalWrite(5,HIGH);
+        tone(4, 195, 0.625);
+        delay(250);
+        noTone(4);
+        lcd.clear();
+        lcd.setCursor(0,0);
+        lcd.print("PASSWORD");
+        lcd.setCursor(0,1);
+        lcd.print("CORRECTA");
+        delay(2000);
+        digitalWrite(4,LOW);
+        lcd.clear();
+        lcd.setCursor(0,0);
+        lcd.print("BIENVENIDO =D");
+        delay(2000);
+        digitalWrite(5,LOW);
+      }
+      else{
+        digitalWrite(6,HIGH);
+        tone(4, 48,500);
+        delay(250);
+        noTone(4);
+        lcd.clear();
+        lcd.setCursor(0,0);
+        lcd.print("PASSWORD");
+        lcd.setCursor(0,1);
+        lcd.print("INCORRECTA");
+        delay(2000);
+        lcd.clear();
+        lcd.setCursor(0,0);
+        lcd.print("INTENTE ");
+        lcd.setCursor(0,1);
+        lcd.print("DE NUEVO");
+        delay(2000);
+        digitalWrite(6,LOW);
+        lcd.clear();
+        intento++;
+        if (intento==3){
+          lcd.clear();
+          lcd.setCursor(0,0);
+          lcd.print("LIMITE DE INTENTOS");
+          delay(9999);
+        }
+      } 
+      cont=0;
+      prueba="";
+      i=0;        
+      }
+  }
+}
