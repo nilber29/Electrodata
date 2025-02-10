@@ -30,201 +30,194 @@ int countClaveIncorrecta = 0;
 bool isOpen;
 
 void setup(){
-  pinMode(11, OUTPUT);	//LEDS QUE INDICAN ABIERTO(11) CERRADO(12)
-  pinMode(12, OUTPUT);
-  pinMode(buzzer, OUTPUT);
-  digitalWrite(12, HIGH);	//Enciende el led de cerrado
-  seguro.attach(13);		//Pin del servomotor
-  seguro.write(CERRAR);
-  lcd.begin(16, 2);		//Configuracion lcd 16X2 (columnas,fila)
-  informacion();
-  isOpen = false;
-  //LEER CONTRASEÑA DE LA EEPROM 
-  //correción
-  if (EEPROM.read(4) != 'Z'){
-    EEPROM.write(0, '0');
-    EEPROM.write(1, '0');
-    EEPROM.write(2, '0');
-    EEPROM.write(3, '0');
-    EEPROM.write(4, 'Z');
-  }
-  for (int i = 0 ; i <= 4 ; i++){
-    password[i] = EEPROM.read(i);
-  }
-  countClaveIncorrecta = 0;
-  reset();
+	pinMode(11, OUTPUT);	//LEDS QUE INDICAN ABIERTO(11) CERRADO(12)
+	pinMode(12, OUTPUT);
+	pinMode(buzzer, OUTPUT);
+	digitalWrite(12, HIGH);	//Enciende el led de cerrado
+	seguro.attach(13);		//Pin del servomotor
+	seguro.write(CERRAR);
+	lcd.begin(16, 2);		//Configuracion lcd 16X2 (columnas,fila)
+	informacion();
+	isOpen = false;
+	//LEER CONTRASEÑA DE LA EEPROM 
+	//correción
+	if (EEPROM.read(4) != 'Z'){
+		EEPROM.write(0, '0');
+		EEPROM.write(1, '0');
+		EEPROM.write(2, '0');
+		EEPROM.write(3, '0');
+		EEPROM.write(4, 'Z');
+	}
+	for (int i = 0 ; i <= 4 ; i++){
+		password[i] = EEPROM.read(i);
+	}
+	countClaveIncorrecta = 0;
+	reset();
 }//fin del setup
 
 void loop(){
-  leerIngreso(1);
+	leerIngreso(1);
 }
 ////////////////////////////////////////////
 void leerIngreso(int a){
-  ingreso = teclado.getKey();
-  if (ingreso != NO_KEY)
-  switch (ingreso){
-    case '#':    // es como el "enter" para introducir la password
-    if(isOpen){
-      lcd.setCursor(0, 0);
-      lcd.print(" Puerta abierta ");
-      lcd.setCursor(0, 1);
-      lcd.print("                ");
-      delay(2000);
-      break;
-    }
-				digitalWrite(10, HIGH);
-				delay(15);
-				digitalWrite(10, LOW);
-				delay(15);
-
-				if (evaluar(1) == 1)
-				{
-					correcto();
-					lcd.setCursor(0, 0);
-					lcd.print(" Puerta abierta ");
-					lcd.setCursor(0, 1);
-					lcd.print("                ");
-				}
-				else
-				{
-					msgError();
-					countClaveIncorrecta++;
-
-					if (countClaveIncorrecta >= 3)
-					{
-						lcd.setCursor(0, 0);
-						lcd.print("SISTEMA BLOQUEADO ");
-						digitalWrite(buzzer, HIGH);
-						delay(messageDelay);
-						delay(messageDelay);
-						delay(messageDelay);
-						delay(messageDelay);
-                      	delay(messageDelay);
-						digitalWrite(buzzer, LOW);
-						lcd.print("SISTEMA LISTO   ");
-						delay(messageDelay);
-						delay(5);
-						countClaveIncorrecta = 0;
-						reset();
-					}
-					reset();
-				}
-				//reset();
-				break;
-
-			case 'B':
-				if(isOpen)
-				{
-					lcd.setCursor(0, 0);
-					lcd.print(" Puerta abierta ");
-					lcd.setCursor(0, 1);
-					lcd.print("                ");
-					delay(2000);
-					break;
-				}
-				digitalWrite(10, HIGH);
-				delay(15);
-				digitalWrite(10, LOW);
-				delay(15);
-				informacion();  //muestra en el lcd las opciones de la caja fuerte
-				reset();
-				break;
-			case 'C':
-				if(isOpen){
-					lcd.setCursor(0, 0);
-					lcd.print(" Puerta abierta ");
-					lcd.setCursor(0, 1);
-					lcd.print("                ");
-					delay(2000);
-					break;
-				}
-				digitalWrite(10, HIGH);
-				delay(15);
-				digitalWrite(10, LOW);
-				delay(15);
-				cambioPass();
-				reset();
-				break;
-			case 'D':
-				if(!isOpen){
-					lcd.setCursor(0, 0);
-					lcd.print(" Puerta cerrada ");
-					lcd.setCursor(0, 1);
-					lcd.print("                ");
-					delay(2000);
-					reset();
-					break;
-				}
-				isOpen = false;
+	ingreso = teclado.getKey();
+	if (ingreso != NO_KEY)
+	switch (ingreso){
+		case '#':    // es como el "enter" para introducir la password
+		if(isOpen){
+			lcd.setCursor(0, 0);
+			lcd.print(" Puerta abierta ");
+			lcd.setCursor(0, 1);
+			lcd.print("                ");
+			delay(2000);
+			break;
+		}
+		digitalWrite(10, HIGH);
+		delay(15);
+		digitalWrite(10, LOW);
+		delay(15);
+		if (evaluar(1) == 1){
+			correcto();
+			lcd.setCursor(0, 0);
+			lcd.print(" Puerta abierta ");
+			lcd.setCursor(0, 1);
+			lcd.print("                ");
+		}
+		else{
+			msgError();
+			countClaveIncorrecta++;
+			if (countClaveIncorrecta >= 3){
 				lcd.setCursor(0, 0);
-				lcd.print("Cerrar Puerta   ");
-				seguro.write(CERRAR);
+				lcd.print("SISTEMA BLOQUEADO ");
 				digitalWrite(buzzer, HIGH);
 				delay(messageDelay);
+				delay(messageDelay);
+				delay(messageDelay);
+				delay(messageDelay);
+				delay(messageDelay);
 				digitalWrite(buzzer, LOW);
-				delay(15);
-				digitalWrite(12, HIGH);
-				digitalWrite(11, LOW);
-				reset();
-				break;
-			case '*':
-				if(isOpen){
-					lcd.setCursor(0, 0);
-					lcd.print(" Puerta abierta ");
-					lcd.setCursor(0, 1);
-					lcd.print("                ");
-					delay(2000);
-					break;
-				}
-				lcd.setCursor(0, 0);
-				lcd.print("Presionaste *    ");
-				digitalWrite(buzzer, HIGH);
-				delay(500);
-				digitalWrite(buzzer, LOW);
+				lcd.print("SISTEMA LISTO   ");
+				delay(messageDelay);
 				delay(5);
+				countClaveIncorrecta = 0;
 				reset();
-				break;
-			case 'A':
-				if(isOpen){
-					lcd.setCursor(0, 0);
-					lcd.print(" Puerta abierta ");
-					lcd.setCursor(0, 1);
-					lcd.print("                ");
-					delay(2000);
-					break;
-				}
-				reset();
-				break;
-			default: //si es un numero debe imprimirlo en el LCD y ademas guardarlo en el arreglo passUser
-				if(isOpen){
-					lcd.setCursor(0, 0);
-					lcd.print(" Puerta abierta ");
-					lcd.setCursor(0, 1);
-					lcd.print("                ");
-					delay(2000);
-					for (int i = 0 ; i <= 3 ; i++){
-						passUser[i] = NO_KEY;
-						confirmPass[i] = NO_KEY;
-					}
-					countGeral = 0;
-					break;
-				}
-				if (a == 1){
-					passUser[countGeral] = ingreso;
-					printPass(passUser[countGeral], 6 + countGeral, 1);
-					digitalWrite(10, HIGH);
-					delay(15);
-					digitalWrite(10, LOW);
-					delay(15);
-				}
-				if (a == 2){
-					confirmPass[countGeral] = ingreso;
-					printPass(confirmPass[countGeral], 6 + countGeral, 1);
-				}
-				countGeral++;
-				if (countGeral > 3)
-					countGeral = 0;
+			}
+			reset();
 		}
+		//reset();
+		break;
+		case 'B':
+		if(isOpen){
+			lcd.setCursor(0, 0);
+			lcd.print(" Puerta abierta ");
+			lcd.setCursor(0, 1);
+			lcd.print("                ");
+			delay(2000);
+			break;
+		}
+		digitalWrite(10, HIGH);
+		delay(15);
+		digitalWrite(10, LOW);
+		delay(15);
+		informacion();  //muestra en el lcd las opciones de la caja fuerte
+		reset();
+		break;
+		case 'C':
+		if(isOpen){
+			lcd.setCursor(0, 0);
+			lcd.print(" Puerta abierta ");
+			lcd.setCursor(0, 1);
+			lcd.print("                ");
+			delay(2000);
+			break;
+		}
+		digitalWrite(10, HIGH);
+		delay(15);
+		digitalWrite(10, LOW);
+		delay(15);
+		cambioPass();
+		reset();
+		break;
+		case 'D':
+		if(!isOpen){
+			lcd.setCursor(0, 0);
+			lcd.print(" Puerta cerrada ");
+			lcd.setCursor(0, 1);
+			lcd.print("                ");
+			delay(2000);
+			reset();
+			break;
+		}
+		isOpen = false;
+		lcd.setCursor(0, 0);
+		lcd.print("Cerrar Puerta   ");
+		seguro.write(CERRAR);
+		digitalWrite(buzzer, HIGH);
+		delay(messageDelay);
+		digitalWrite(buzzer, LOW);
+		delay(15);
+		digitalWrite(12, HIGH);
+		digitalWrite(11, LOW);
+		reset();
+		break;
+		case '*':
+		if(isOpen){
+		lcd.setCursor(0, 0);
+			lcd.print(" Puerta abierta ");
+			lcd.setCursor(0, 1);
+			lcd.print("                ");
+			delay(2000);
+			break;
+		}
+		lcd.setCursor(0, 0);
+		lcd.print("Presionaste *    ");
+		digitalWrite(buzzer, HIGH);
+		delay(500);
+		digitalWrite(buzzer, LOW);
+		delay(5);
+		reset();
+		break;
+		case 'A':
+		if(isOpen){
+			lcd.setCursor(0, 0);
+			lcd.print(" Puerta abierta ");
+			lcd.setCursor(0, 1);
+			lcd.print("                ");
+			delay(2000);
+			break;
+		}
+		reset();
+		break;
+		default: //si es un numero debe imprimirlo en el LCD y ademas guardarlo en el arreglo passUser
+		if(isOpen){
+			lcd.setCursor(0, 0);
+			lcd.print(" Puerta abierta ");
+			lcd.setCursor(0, 1);
+			lcd.print("                ");
+			delay(2000);
+			for (int i = 0 ; i <= 3 ; i++){
+				passUser[i] = NO_KEY;
+				confirmPass[i] = NO_KEY;
+			}
+			countGeral = 0;
+			break;
+		}
+		if (a == 1){
+			passUser[countGeral] = ingreso;
+			printPass(passUser[countGeral], 6 + countGeral, 1);
+			digitalWrite(10, HIGH);
+			delay(15);
+			digitalWrite(10, LOW);
+			delay(15);
+		}
+		if (a == 2){
+			confirmPass[countGeral] = ingreso;
+			printPass(confirmPass[countGeral], 6 + countGeral, 1);
+		}
+		countGeral++;
+		if (countGeral > 3)
+		countGeral = 0;
+	}
 }
 
 void cleanlcd(){
@@ -265,6 +258,7 @@ int evaluar(int a){
 		return j = 0;
 	}
 }
+
 void reset(){
 	lcd.setCursor(0, 0);
 	lcd.print(" INGRESE CLAVE  ");
@@ -276,11 +270,13 @@ void reset(){
 	}
 	countGeral = 0;
 }
+
 void msgError(){
 	lcd.setCursor(0, 0);
 	lcd.print("      ERROR      ");
 	delay(500);
 }
+
 void correcto(){
 	lcd.setCursor(0, 0);
 	lcd.print("     CORRECTO      ");
@@ -296,8 +292,8 @@ void correcto(){
 	delay(500);
 	countClaveIncorrecta = 0;
 }
-void informacion()
-{
+
+void informacion(){
 	lcd.setCursor(0, 0);
 	lcd.print("A ingresar clave");
 	lcd.setCursor(0, 1);
@@ -315,8 +311,7 @@ void informacion()
 	delay(messageDelay);
 }
 
-void cambioPass()
-{
+void cambioPass(){
 	lcd.setCursor(0, 0);
 	lcd.print("Cambiar clave    ");
 	delay(messageDelay);
@@ -324,18 +319,15 @@ void cambioPass()
 	lcd.print("Clave anterior    ");
 	delay(messageDelay);
 	reset();
-	while (passUser[3] == NO_KEY)
-	{
+	while (passUser[3] == NO_KEY){
 		leerIngreso(1);
 	}
-	if (evaluar(1) == 1)
-	{
+	if (evaluar(1) == 1){
 		lcd.setCursor(0, 0);
 		lcd.print("Clave nueva           ");
 		delay(messageDelay);
 		reset();
-		while (passUser[3] == NO_KEY)
-		{
+		while (passUser[3] == NO_KEY){
 			leerIngreso(1);
 		}
 		lcd.setCursor(0, 0);
@@ -347,19 +339,15 @@ void cambioPass()
 		lcd.print("      ____      ");
 		lcd.setCursor(0, 0);
 		countGeral = 0;
-		while (confirmPass[3] == NO_KEY)
-		{
+		while (confirmPass[3] == NO_KEY){
 			leerIngreso(2);
 		}
-		if (evaluar(2) == 1)
-		{
+		if (evaluar(2) == 1){
 			// funcion de EEPROM
-			for (int i = 0 ; i <= 3 ; i++)
-			{
+			for (int i = 0 ; i <= 3 ; i++){
 				EEPROM.write(i, passUser[i]);
 			}
-			for (int i = 0 ; i <= 3 ; i++)
-			{
+			for (int i = 0 ; i <= 3 ; i++){
 				password[i] = EEPROM.read(i);
 			}
 			lcd.setCursor(0, 0);
@@ -367,8 +355,7 @@ void cambioPass()
 			delay(messageDelay);
 			countClaveIncorrecta = 0;
 		}
-		else
-		{
+		else{
 			lcd.setCursor(0, 0);
 			lcd.print("Error claves   ");
 			//delay(messageDelay);
@@ -377,18 +364,14 @@ void cambioPass()
 			delay(messageDelay);
 		}
 	}
-	else
-	{
+	else{
 		msgError();
 	}
 	reset();
 }
-void passChange()
-{
-	for (int i = 0 ; i <= 3 ; i++)
-	{
+
+void passChange(){
+	for (int i = 0 ; i <= 3 ; i++){
 		password[i] = passUser[i];
 	}
 }
-
-
