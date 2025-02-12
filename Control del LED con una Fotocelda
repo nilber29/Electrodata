@@ -2,7 +2,7 @@ void setup(){
   Serial.begin(9600); //Inicia comunicación serial
   pinMode(9,OUTPUT); //Configurar el pin 9 como una salida de PWM
 }
-
+ 
 void loop(){ // cuando este energizado el Arduino
   int foto = analogRead(A0);
   int conversion = 780 - foto;
