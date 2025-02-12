@@ -1,0 +1,46 @@
+#include <Servo.h>
+Servo servo1;
+const int botao0 = 7;
+const int botao1 = 6;
+const int botao2 = 5;
+int estadoBotao0 = 0;
+int estadoBotao1 = 0;
+int estadoBotao2 = 0;
+unsigned long started_waiting_at; 
+
+void setup (){
+  servo1.attach(9);
+  pinMode(botao0, INPUT);
+  pinMode(botao1, INPUT);
+  pinMode(botao1, INPUT);
+  servo1.write(0);
+}
+
+void loop(){  
+  estadoBotao0= digitalRead(botao0);
+  estadoBotao1 = digitalRead(botao1);
+  estadoBotao2 = digitalRead(botao2);
+  if(estadoBotao0==LOW){
+    servo1.write(0);
+    started_waiting_at = millis();
+    estadoBotao0=HIGH;
+    delay(15); 
+  }
+  else if(estadoBotao1==LOW){
+    servo1.write(127);
+    started_waiting_at = millis();
+    estadoBotao1=HIGH;
+    delay(15); 
+  }
+  else if(estadoBotao2==LOW){
+    servo1.write(256);
+    started_waiting_at = millis();
+    estadoBotao2=HIGH;
+    delay(15); 
+  }
+  if(millis() - started_waiting_at > 20000){
+    servo1.write(0);
+    delay(15);
+  }
+  
+}
