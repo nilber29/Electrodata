@@ -1,0 +1,31 @@
+#include <Servo.h>
+Servo servo1;
+int pul_0 = A0;
+int pul_1 = A1;
+int pul_2 = A2;
+int piso0 = 0;
+int piso1 = 0;
+int piso2 = 0;
+int tiempo=200;
+
+void setup() {
+  pinMode(pul_0,INPUT);
+  pinMode(pul_1,INPUT);
+  pinMode(pul_2,INPUT);
+  servo1.attach(2);
+}
+
+void loop() {
+  piso0 = digitalRead(pul_0);
+  piso1 = digitalRead(pul_1);
+  piso2 = digitalRead(pul_2);
+  if (piso0 == HIGH){
+    servo1.write(0);
+  }
+  if (piso1 == HIGH){
+    servo1.write(90);
+  }
+  if (piso2 == HIGH){
+    servo1.write(180);
+  }
+}
