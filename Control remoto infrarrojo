@@ -1,0 +1,31 @@
+#include <IRremote.h>
+#define Boton_1 0xFF6897
+#define Boton_2 0xFF30CF
+#define Boton_3 0xFF18E7
+int ReceptorIR=11;
+IRrecv irrecv(ReceptorIR);
+decode_results Valor;
+int led1=2;
+int led2=3;
+int led3=4;
+void setup(){
+  Serial.begin(9600);
+  irrecv.enableIRIn();
+  pinMode(led1,OUTPUT);
+  pinMode(led2,OUTPUT);
+  pinMode(led3,OUTPUT);
+}
+
+void loop(){
+  if(irrecv.decode(&Valor)){
+    Serial.println(Valor.value,HEX);
+    if(Valor.value==Boton_1)
+    digitalWrite(led1,!digitalRead(led1));
+    if(Valor.value==Boton_2)
+    digitalWrite(led2,!digitalRead(led2));
+    if(Valor.value==Boton_3)
+    digitalWrite(led3,!digitalRead(led3));
+    irrecv.resume();
+  }
+  delay(100);
+}
