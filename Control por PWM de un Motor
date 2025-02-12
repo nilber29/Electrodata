@@ -1,0 +1,21 @@
+int motor=3;
+
+void setup(){
+  Serial.begin(9600);
+}
+
+void loop(){
+  if (Serial.available()){
+    char a=Serial.read();
+    if (a>='0' && a<='5'){ 
+      int velocidad=map(a,'0','5',0,255);
+      analogWrite(motor,velocidad);
+      Serial.print("El motor esta girando a la velocidad ");
+      Serial.println(a);
+    }
+    else{
+      Serial.print("Velocidad invalida");
+      Serial.println(a);
+    }
+  }
+}
