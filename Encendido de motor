@@ -1,0 +1,39 @@
+#include  <LiquidCrystal.h>
+LiquidCrystal lcd (11, 10, 5, 4, 3, 2);
+String estado;
+int pulsadorA = 9;
+int pulsadorB = 8;
+int estadoA;
+int estadoB;
+int estadomotor;
+
+void setup(){
+  pinMode(pulsadorA, INPUT);
+  pinMode(pulsadorB, INPUT);
+  pinMode(13, OUTPUT);
+  lcd.begin(16,2);
+  lcd.print("Motor Apagado");
+}
+
+void loop(){
+  estadoA=digitalRead(pulsadorA); 
+  estadoB=digitalRead(pulsadorB); 
+  if((estadoA==1 || estadoB==1) && estadomotor==0){
+    lcd.clear();
+    digitalWrite(13, HIGH);
+    estadomotor = 1;
+    lcd.setCursor(0, 0);
+    lcd.print("Motor Encendido");
+    delay(3000);
+  }
+  else{
+    if((estadoA==1 || estadoB==1) && estadomotor==1){
+      lcd.clear();
+      digitalWrite(13, LOW);
+      estadomotor = 0;
+      lcd.setCursor(0, 0);
+      lcd.print("Motor Apagado");
+      delay(3000);
+    } 
+  }
+}
