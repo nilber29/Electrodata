@@ -1,0 +1,13 @@
+int buzzer=9;
+int tono=0;
+
+void setup(){
+} 
+
+void loop(){ 
+  int sensor=analogRead(tono);
+  int frecuencia=map(sensor,0,1023,100,5000);
+  int duracion=250;
+  tone(buzzer, frecuencia, duracion);
+  delay(100);
+}
