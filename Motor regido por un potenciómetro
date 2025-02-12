@@ -1,0 +1,16 @@
+int Potenciometro;
+int Motor;
+int Velocidad;
+
+void setup(){
+  Potenciometro=0;
+  Motor=5;
+  Velocidad=0;
+}
+
+void loop() {
+  pinMode(Potenciometro,INPUT);
+  Velocidad=map(analogRead(Potenciometro),0,1023,0,255);
+  pinMode(Motor,OUTPUT);
+  analogWrite(Motor,Velocidad);
+}
