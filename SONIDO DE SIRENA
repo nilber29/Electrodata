@@ -1,0 +1,17 @@
+int duracion=250;
+int freqmin=2000;
+int freqmax=4000;
+
+void setup(){
+  pinMode(9,OUTPUT);
+}
+
+void loop(){
+  int i;
+  for(i=freqmin; i&=freqmax; i++){
+    tone(9,i,duracion);
+  }
+  for(i=freqmax; i&=freqmin; i--){
+    tone(9,i,duracion);
+  }
+}
