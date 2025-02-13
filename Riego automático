@@ -1,0 +1,25 @@
+int moisture = 0;
+const int Motor1 = 12;
+
+void setup(){
+  pinMode(A1, OUTPUT);
+  pinMode(A2, INPUT);
+  Serial.begin(9600);
+  pinMode(Motor1, OUTPUT);
+}
+
+void loop(){
+  digitalWrite(A1, HIGH);
+  delay(10); 
+  moisture = analogRead(A2);
+  digitalWrite(A1, LOW);
+  Serial.println(moisture);
+  digitalWrite(Motor1, HIGH);
+  if (moisture <250){
+    digitalWrite(Motor1, HIGH);
+  }
+  else{
+    digitalWrite(Motor1, LOW);
+    delay(100);
+  }
+}
