@@ -1,0 +1,95 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+// Define los pines de los sensores
+const int sensorTempPin = A0; // Pin del sensor de temperatura 
+const int sensorHumedad = A1;  // Pin del sensor de humedad
+// Define los pines de los LED RGB
+const int ledTempRPin = 9;  // Pin R del LED RGB para la temperatura
+const int ledTempGPin = 10; // Pin G del LED RGB para la temperatura
+const int ledTempBPin = 11; // Pin B del LED RGB para la temperatura
+const int ledHumRPin = 6;   // Pin R del LED RGB para la humedad
+const int ledHumGPin = 5;   // Pin G del LED RGB para la humedad
+const int ledHumBPin = 3;   // Pin B del LED RGB para la humedad
+const int lectura = 0;      // variable inicia en 0
+const int humedad = 0;      // variable inicia en 0
+const int motor = 13;      // variable para el motor
+// Inicialización de la LCD 16x2
+LiquidCrystal_I2C lcd(0x20, 16, 2);
+
+void setup() {
+  // Comunicacion serial
+  Serial.begin(9600);
+  // Se inicia el LCD
+  lcd.init();
+  lcd.backlight();
+  // Configuración de los pines de los LED RGB y motor como salida
+  pinMode(ledTempRPin, OUTPUT);
+  pinMode(ledTempGPin, OUTPUT);
+  pinMode(ledTempBPin, OUTPUT);
+  pinMode(ledHumRPin, OUTPUT);
+  pinMode(ledHumGPin, OUTPUT);
+  pinMode(ledHumBPin, OUTPUT);
+  pinMode(motor, OUTPUT);
+}
+
+void loop() {
+  // Leer la temperatura desde el sensor de temperatura
+  int lecturaTempSensor = analogRead(sensorTempPin);
+  float voltajeTemp = (lecturaTempSensor * 5.0) / 1023.0;
+  float temperaturaCelsius = (voltajeTemp - 0.5) * 100.0;
+  // Leer la humedad desde el sensor de humedad
+  int lectura = analogRead(sensorHumedad); 
+  float humedad = map(lectura, 0, 880, 0, 100);
+  // Mostrar las lecturas en la LCD
+  lcd.setCursor(0, 0);
+  lcd.print("Temp: ");
+  lcd.print(temperaturaCelsius);
+  lcd.print(" C  ");
+  lcd.setCursor(0, 1);
+  lcd.print("Hum: ");
+  lcd.print(humedad);
+  lcd.print(" %  ");
+  // Control del LED RGB para la temperatura
+  if (temperaturaCelsius < 10) {
+    // Temperatura menor a 10°C: enciende el LED en color celeste (azul + verde)
+    analogWrite(ledTempRPin, 0);
+    analogWrite(ledTempGPin, 255);
+    analogWrite(ledTempBPin, 255);
+  } 
+  else if (temperaturaCelsius > 30) {
+    // Temperatura mayor a 30°C: enciende el LED en color rojo
+    analogWrite(ledTempRPin, 255);
+    analogWrite(ledTempGPin, 0);
+    analogWrite(ledTempBPin, 0);
+  } 
+  else {
+    // Temperatura entre 11°C y 29°C: enciende el LED en color verde
+    analogWrite(ledTempRPin, 0);
+    analogWrite(ledTempGPin, 255);
+    analogWrite(ledTempBPin, 0);
+  }
+  // Control del LED RGB para la humedad
+  if (humedad < 80) {
+    // Humedad menor a 80%: enciende el LED en color rojo y enciende boma de agua (motor)
+    analogWrite(ledHumRPin, 255);
+    analogWrite(ledHumGPin, 0);
+    analogWrite(ledHumBPin, 0);
+    digitalWrite(motor, HIGH);
+    delay(1000); // tiempo de 1 minutos para 5 litro de agua a la planta (60000 ms) se utilizo 1000 ms ya que duraria mucho la simulacion
+    digitalWrite(motor, LOW);
+  } 
+  else if (humedad >= 80 && humedad <= 90) {
+    // Humedad entre 80% y 90%: enciende el LED en color verde
+    analogWrite(ledHumRPin, 0);
+    analogWrite(ledHumGPin, 255);
+    analogWrite(ledHumBPin, 0);
+  } 
+  else {
+    // Humedad mayor a 90%: enciende el LED en color celeste (azul + verde)
+    analogWrite(ledHumRPin, 0);
+    analogWrite(ledHumGPin, 255);
+    analogWrite(ledHumBPin, 255);
+  }
+  // Wait for a second before taking another reading
+  delay(1000);
+}
