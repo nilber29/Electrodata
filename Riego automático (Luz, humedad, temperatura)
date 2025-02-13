@@ -1,0 +1,66 @@
+#include <Adafruit_LiquidCrystal.h>
+#include "Adafruit_LEDBackpack.h"
+int humedad = 0;
+int temperatura = 0;
+int luz = 0;
+int nivel_agua = 0;
+Adafruit_LiquidCrystal lcd_1(0);
+Adafruit_7segment led_display1 = Adafruit_7segment();
+
+void setup(){
+  pinMode(12, INPUT);
+  lcd_1.begin(16, 2);
+  led_display1.begin(112);
+  pinMode(A0, INPUT);
+  pinMode(A1, INPUT);
+  pinMode(A2, INPUT);
+  pinMode(A3, INPUT);
+  pinMode(5, OUTPUT);
+  humedad = 0;
+  temperatura = 0;
+  luz = 0;
+  nivel_agua = 0;
+}
+
+void loop(){
+  if (digitalRead(12) == 0) {
+    lcd_1.setCursor(0, 0);
+    lcd_1.print("Power OFF.");
+    lcd_1.setCursor(0, 1);
+    lcd_1.print("Pulsa interruptor");
+  }
+  else {
+    lcd_1.clear();
+    lcd_1.setCursor(0, 0);
+    lcd_1.print(humedad);
+    lcd_1.setCursor(4, 0);
+    lcd_1.print("% humedad");
+    lcd_1.setCursor(0, 1);
+    lcd_1.print(temperatura);
+    lcd_1.setCursor(4, 1);
+    lcd_1.print("Celsius");
+    delay(1000); // Wait for 1000 millisecond(s)
+    lcd_1.clear();
+    lcd_1.setCursor(0, 0);
+    lcd_1.print(luz);
+    lcd_1.setCursor(4, 0);
+    lcd_1.print("% luz");
+    lcd_1.setCursor(0, 1);
+    lcd_1.print(nivel_agua);
+    lcd_1.setCursor(4, 1);
+    lcd_1.print("% llenado");
+    delay(1000); // Wait for 1000 millisecond(s)
+    led_display1.clear();
+    led_display1.writeDisplay();
+  }
+  humedad = map(analogRead(A0), 0, 1023, 0, 100);
+  temperatura = map(analogRead(A1), 0, 1023, -40, 125);
+  luz = map(analogRead(A2), 0, 1023, -40, 125);
+  nivel_agua = map(analogRead(A3), 0, 1023, 0, 100);
+  if (humedad < 20) {
+    digitalWrite(5, HIGH);
+  } 
+  else {
+    digitalWrite(5, LOW);
+  }
+}
