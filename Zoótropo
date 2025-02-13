@@ -1,0 +1,55 @@
+const int PindeControl1=2;
+const int PindeControl2=3;
+const int PindeActivacion=9;
+const int PinDireccionGiro=4;
+const int PinEncendidoApagado=5;
+const int PinPotenciometro=A0; 
+int EstadoPulsadorArranque=0;
+int EstadoPrevioPulsadorArranque=0;
+int EstadoPulsadorDireccion=0 ;
+int EstadoPrevioPulsadorDireccion=0;
+int ActivarMotor=0;
+int VelocidadMotor=0;
+int DireccionMotor=1; 
+
+void setup(){
+  pinMode(PinDireccionGiro,INPUT);
+  pinMode(PinEncendidoApagado, INPUT);
+  pinMode(PindeControl1,OUTPUT);
+  pinMode(PindeControl2,OUTPUT);
+  pinMode(PindeActivacion,OUTPUT);
+  digitalWrite(PindeActivacion,LOW);
+} 
+
+void loop () {
+  EstadoPulsadorArranque=digitalRead(PinEncendidoApagado);
+  delay(1);
+  EstadoPulsadorDireccion=digitalRead(PinDireccionGiro);
+  VelocidadMotor=analogRead(PinPotenciometro)/4;
+  if(EstadoPulsadorArranque!=EstadoPrevioPulsadorArranque){
+    if(EstadoPulsadorArranque==HIGH){
+      ActivarMotor=!ActivarMotor;
+    }
+  }
+  if(EstadoPulsadorDireccion!=EstadoPrevioPulsadorDireccion) {
+    if(EstadoPulsadorDireccion==HIGH) {
+      DireccionMotor!=DireccionMotor;
+    }
+  }
+  if(DireccionMotor==1){
+    digitalWrite(PindeControl1,HIGH);
+    digitalWrite(PindeControl2,LOW);
+  }
+  else{
+  digitalWrite(PindeControl1,LOW);
+    digitalWrite(PindeControl2,HIGH);
+  }
+  if(ActivarMotor==1) {
+    analogWrite(PindeActivacion,VelocidadMotor);
+  }
+  else{
+    analogWrite(PindeActivacion, 0);
+  }
+  EstadoPrevioPulsadorDireccion=EstadoPulsadorDireccion;
+  EstadoPrevioPulsadorArranque=EstadoPulsadorArranque;
+}
