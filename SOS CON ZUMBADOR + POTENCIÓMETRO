@@ -1,0 +1,15 @@
+int tono=1000;
+
+void setup(){
+  pinMode(8,OUTPUT);
+  pinMode(A0,INPUT);
+}
+
+void loop(){
+  digitalWrite(8,HIGH);
+  delayMicroseconds(tono/2);
+  digitalWrite(8,LOW);
+  delayMicroseconds(tono/2);
+  tono=analogRead(A0);
+  tono=map(tono,0,1023,1000,5000);
+}
